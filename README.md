@@ -1,96 +1,77 @@
-# 11주차 성적 CSV 테스트 비교 실습
+# 11주차 성적 CSV 테스트와 A/B 비교
 
-성적 CSV를 읽는 `load_scores.py`와 이를 확인하는 사용자 작성 테스트 및 AI가 만든 A/B 테스트를 비교하는 실습입니다. A는 구현 코드를 바탕으로, B는 명세를 바탕으로 작성된 테스트입니다.
+이 저장소는 `load_scores.py`의 동작을 pytest로 점검하고, 사람이 설계한 테스트와 AI가 생성한 두 가지 테스트(A: 코드 제공, B: 명세 제공)를 비교한 과제입니다.
 
 ## ① 무엇을 하나요 (What)
 
-`load_scores(path)`는 CSV에서 유효한 성적과 건너뛴 행 기록을 반환합니다. 반환값은 `(kept, skipped)`이며, `kept` 항목은 `(이름, 정수 점수)`, `skipped` 항목은 `(줄 번호, 원본 행, 사유)` 형식입니다. 구현은 첫 행을 헤더로 건너뛰고, 이름 앞뒤 공백을 제거하며, 0~100 범위의 정수 점수만 남깁니다. 잘못된 열 수·빈 이름·빈 점수·정수가 아닌 점수·범위 밖 점수는 기록하고, 빈 줄은 기록 없이 건너뜁니다. 이 과제는 해당 함수의 정상·예외·경계 상황을 테스트하고 세 테스트 묶음의 검사 범위와 결과를 비교합니다.
+`load_scores(path)`는 CSV 파일을 읽어 `(kept, skipped)`를 반환합니다. `kept`는 `(이름, 점수)` 목록으로 0~100 사이의 정수 점수만 포함하고, `skipped`는 `(줄 번호, 원본 행, 이유)` 목록으로 유효하지 않은 데이터 행을 기록합니다. 헤더는 읽지 않고, 빈 줄은 현재 구현에서 기록하지 않은 채 건너뜁니다. 같은 이름이 여러 번 나와도 지우지 않습니다.
 
 ## ② 왜 만들었나요 (Why)
 
-실제 제작 배경은 제공된 파일만으로 확인할 수 없습니다. 과제 파일에는 같은 함수를 대상으로 직접 작성한 테스트와 코드 기반 AI 테스트(A), 명세 기반 AI 테스트(B)가 있어 테스트 관점과 한계를 비교할 수 있습니다.
+성적 CSV에는 빈 줄, 잘못된 점수, 형식이 다른 행처럼 정상 입력과 예외 입력이 함께 나타날 수 있습니다. 이런 상황에서 프로그램이 정해진 방식으로 반응하는지 자동 테스트로 확인하고, 코드를 보고 만든 AI 테스트와 명세를 보고 만든 AI 테스트가 어떤 점을 서로 다르게 검사하는지 비교하기 위한 실습입니다. 특히 테스트가 통과했다는 사실만으로 모든 동작이 검증되는 것은 아니라는 점을 확인할 수 있습니다.
+
+> 이 문단은 과제의 검증 목적을 설명한 AI 도움 초안입니다. 개인적인 제작 동기와 수업에서 직접 판단한 점은 제출 전에 작성자가 검토해 확정해야 합니다.
 
 ## ③ 어떻게 쓰나요 (How)
 
-### 실행 환경 및 설치
-
-`load_scores.py`는 Python 표준 `csv` 모듈을 사용합니다. 테스트 실행에는 `pytest`가 필요합니다. 기존 실행 기록에는 Python 3.14.7과 pytest 9.2.0이 표시되어 있습니다. 이는 기록된 실행 환경이며, 프로젝트의 최소 지원 Python 버전은 제공된 파일에서 확인되지 않았습니다.
-
-Windows PowerShell에서 프로젝트 루트 폴더 기준:
+Python과 pytest가 필요합니다. 기록된 실습 환경은 Windows, Python 3.14.7, pytest 9.2.0입니다. 아래 명령어는 **GitHub에서 이 저장소를 내려받은 폴더(README.md가 있는 폴더)** 기준입니다.
 
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install pytest
+python -m pip install pytest pytest-cov
+python load_scores.py scores.csv
 ```
 
-### 프로그램 실행
-
-프로젝트 루트 폴더에서 예제 CSV를 입력으로 실행합니다.
-
-```powershell
-python .\week11\load_scores.py .\week11\scores.csv
-```
-
-`load_scores.py`는 입력 경로를 받으며, 경로를 생략하면 현재 폴더의 `scores.csv`를 사용하도록 작성되어 있습니다.
+PowerShell 실행 정책 때문에 가상환경을 활성화하기 어렵다면 `py -m pip install pytest pytest-cov`를 사용하거나, 설치된 Python 실행 파일로 `-m pytest`를 실행할 수 있습니다.
 
 ## ④ 어떻게 테스트하나요
 
-프로젝트 루트 폴더에서 각 테스트 묶음을 따로 실행합니다.
+같은 폴더에서 각각 실행합니다.
 
 ```powershell
-python -m pytest -v .\week11\test_load_scores.py
-python -m pytest -v .\week11\test_ai_A.py
-python -m pytest -v .\week11\test_ai_B.py
+python -m pytest -v test_load_scores.py
+python -m pytest -v test_ai_A.py
+python -m pytest -v test_ai_B.py
+python -m pytest --cov=load_scores --cov-report=term-missing test_load_scores.py
 ```
 
-### 테스트 범위
+기존에 저장된 실행 기록은 다음과 같습니다. 이 README 갱신 과정에서 새로 테스트한 숫자는 아닙니다.
 
-| 테스트 묶음 | 주요 정상·예외·경계값 검사 |
-| --- | --- |
-| `test_load_scores.py` | 정상 파일, 빈 줄, 이름에 쉼표, 파일 없음, 헤더만 있는 파일(XFAIL), 점수 0·100·101 |
-| `test_ai_A.py` | 정상 행, 이름·점수 공백 제거, 빈 CSV 행, 잘못된 열 수, 빈 이름·점수, 정수가 아닌 점수, 범위 밖 점수, 파일 없음 |
-| `test_ai_B.py` | 정상 행, 따옴표로 묶인 쉼표 포함 이름, 빈 줄 뒤 유효 행 유지, 잘못된 열 수, 0·100 경계, 범위 밖 점수, 파일 없음 |
-
-### A/B 비교 및 기록된 결과
-
-아래 숫자는 `pytest_results.txt`와 `ab_comparison.txt`에 남아 있는 기존 실행 기록을 옮긴 것입니다. 이 문서 작성 과정에서 실행을 재확인하지 못했습니다. A/B의 상세 출력 로그도 제공된 파일에서 확인되지 않았습니다.
-
-| 테스트 묶음 | PASS | FAIL | XFAIL | 기록된 결과 |
+| 테스트 묶음 | PASS | FAIL | XFAIL | 확인 내용 |
 | --- | ---: | ---: | ---: | --- |
-| 사용자 작성 (`test_load_scores.py`) | 6 | 1 | 1 | 총 8 사례 |
-| AI A (`test_ai_A.py`) | 8 | 0 | 0 | 총 8 사례 |
-| AI B (`test_ai_B.py`) | 8 | 0 | 0 | 총 8 사례 |
+| `test_load_scores.py` (직접 설계) | 6 | 1 | 1 | 정상, 예외, 0·100·101 경계 확인 |
+| `test_ai_A.py` (코드만 제공) | 8 | 0 | 0 | 내부 입력 처리와 오류 분기를 상세 검사 |
+| `test_ai_B.py` (명세만 제공) | 8 | 0 | 0 | 명세상 정상·예외·경계 상황 중심 검사 |
 
-A는 구현에 있는 처리 분기와 구체적인 건너뛴 행 기록(행 번호·원본·사유)을 확인합니다. B는 명세에 적힌 정상·예외·점수 경계와 따옴표 안의 쉼표를 검사하며, 잘못된 행의 세부 기록 대신 건너뛴 개수 등을 확인합니다. 두 AI 테스트 모두 빈 줄이 있어도 유효 점수가 유지되는지만 검사하고, 빈 줄이 `skipped`에 기록되는지는 확인하지 않습니다.
+**실패를 숨기지 않았습니다.** 직접 설계한 빈 줄 테스트는 `skipped` 길이 1을 기대하지만 실제 구현은 0을 반환해 FAIL이었습니다. `test_cases.txt`의 설계와 `load_scores.py` 주석/구현의 빈 줄 처리 요구가 서로 달라 최종 명세 확인이 필요합니다. 헤더만 있는 파일 테스트는 기대 결과가 정리되지 않아 XFAIL로 표시했으며, AI A/B는 빈 줄이 `skipped`에 기록되는지 검사하지 않았습니다. 따라서 A/B 모두 PASS라도 이 불일치를 잡아내지는 못했습니다.
 
-## ⑤ 확인된 실패와 한계
+기존 커버리지 측정값은 **60% (전체 45문장 중 27문장 실행, 18문장 미실행)**입니다. 자세한 실행 기록은 `record1.txt`, `record2.txt`, `pytest_results.txt`, `ab_comparison.txt`에 있습니다. 이전 비교표 작성 때 일부 Windows 실행이 차단되어 그 시점에는 재실행 확인을 못했습니다.
 
-- 기존 사용자 테스트 실행 기록에서는 `test_load_scores_skips_blank_line_and_keeps_valid_scores`가 실패했습니다. 유효 점수 목록은 기대값과 같았지만, 테스트가 `len(skipped) == 1`을 기대한 데 비해 실제 값은 0이었습니다.
-- 빈 줄 처리 기준은 제공된 파일끼리 다릅니다. `test_cases.txt`는 빈 줄을 건너뛰고 이유를 기록한다고 적지만, `load_scores.py`의 주석과 구현은 빈 줄을 기록하지 않고 건너뜁니다. 따라서 관측된 차이는 확인되었지만, 어느 요구를 최종 기준으로 삼는지에 따라 구현 버그인지 테스트 기대값 문제인지는 단정할 수 없습니다.
-- 헤더만 있는 파일 테스트는 `pytest.xfail`로 종료되어 `load_scores`의 결과를 검증하지 않았습니다.
-- 세 테스트 묶음 모두 중복 이름 동작을 검사하지 않습니다. 사용자 테스트는 잘못된 열 수·빈 필드·비정수 점수를, A는 쉼표 포함 이름을, B는 빈 필드·비정수 점수·공백 제거를 검사하지 않습니다.
-- 직전 비교표 작성 과정에서 Python 실행이 Windows Application Control에 차단되어 테스트를 다시 실행하지 못했습니다. 따라서 위 결과는 이번 README 작성 중의 실행 결과가 아니라 저장되어 있던 기록입니다.
+## ⑤ 파일 구성
 
-## ⑥ 파일 구성
-
-| 파일 | 하는 일 |
+| 파일 | 역할 |
 | --- | --- |
-| `load_scores.py` | 성적 CSV를 읽어 유효 성적과 건너뛴 행 기록을 반환하는 함수 |
-| `test_load_scores.py` | 직접 작성한 `load_scores` 테스트 |
-| `test_ai_A.py` | 코드만 보고 만든 AI 테스트 |
-| `test_ai_B.py` | 명세만 보고 만든 AI 테스트 |
-| `test_cases.txt` | 입력 상황과 기대 결과를 정리한 테스트 사례 |
-| `ab_comparison.txt` | 테스트 결과와 A/B 비교 기록 |
-| `pytest_results.txt` | 사용자 테스트의 pytest 실행 로그 |
-| `scores.csv` | 프로그램 실행에 사용할 수 있는 성적 CSV |
+| `load_scores.py` | CSV 성적 파싱 및 유효·제외 목록 반환 |
+| `test_load_scores.py` | 직접 설계한 8개 테스트 케이스 |
+| `test_ai_A.py` | 함수 코드를 제공해 생성한 AI 테스트 |
+| `test_ai_B.py` | 명세를 제공해 생성한 AI 테스트 |
+| `test_cases.txt` | 정상·예외·경계 8개 사례 설계 |
+| `record1.txt`, `pytest_results.txt` | 테스트 실행 기록과 실패 원인 |
+| `record2.txt` | 커버리지 측정과 미실행 줄 이유 |
+| `ab_comparison.txt` | 세 테스트 묶음의 결과 및 A/B 비교 |
+| `prompts.txt` | AI에게 사용하도록 안내된 A·B 비교 프롬프트 |
+| `scores.csv`, `empty.csv`, `weird.csv` | CSV 입력 예제 |
+| `bug3_logic.py` | 별도 논리 오류 실습용 배포 파일 |
+| `LICENSE` | MIT 라이선스 본문 |
 
-## ⑦ 만든 사람 · AI를 어디에 썼는지
+## ⑥ 만든 사람 · AI를 어디에 썼는지
 
-- 만든 사람: 제공된 파일에서 이름을 확인할 수 없음
-- AI를 쓴 곳: A/B 비교 기록 및 이 README 작성
-- 직접 판단한 것: 제공된 파일만으로는 확인할 수 없음
+- 작성자: **이시민 (2026101044)**
+- AI 사용: A/B 테스트 코드 생성 요청, 테스트 결과 표 정리, A/B 비교 문서 및 README 초안 작성 지원
+- 직접 확인한 근거: 저장된 `pytest_results.txt`의 6 PASS / 1 FAIL / 1 XFAIL, `record2.txt`의 60% 커버리지 및 GitHub에 남은 실제 커밋 기록
+- 판단 시 주의점: 테스트 코드/실행을 직접 수행한 범위와 AI가 정리해 준 내용을 혼동하지 않고, 실행하지 않은 검증을 했다고 적지 않았습니다.
 
 ## 라이선스
 
-제공된 `week11` 폴더에서 LICENSE 파일을 확인할 수 없어 라이선스는 기재하지 않았습니다.
+MIT License를 적용합니다. 자세한 조건은 저장소의 `LICENSE` 파일을 참고하세요.
