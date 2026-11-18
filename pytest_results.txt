@@ -1,0 +1,39 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\User\Downloads\이시민_2026101044\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\User\Downloads\이시민_2026101044
+collecting ... collected 8 items
+
+week11/test_load_scores.py::test_load_scores_reads_regular_score_file PASSED [ 12%]
+week11/test_load_scores.py::test_load_scores_skips_blank_line_and_keeps_valid_scores FAILED [ 25%]
+week11/test_load_scores.py::test_load_scores_reads_name_containing_comma PASSED [ 37%]
+week11/test_load_scores.py::test_load_scores_raises_for_missing_file PASSED [ 50%]
+week11/test_load_scores.py::test_load_scores_with_header_only_file_has_unspecified_result XFAIL [ 62%]
+week11/test_load_scores.py::test_load_scores_handles_score_boundaries[0-expected_scores0-0] PASSED [ 75%]
+week11/test_load_scores.py::test_load_scores_handles_score_boundaries[100-expected_scores1-0] PASSED [ 87%]
+week11/test_load_scores.py::test_load_scores_handles_score_boundaries[101-expected_scores2-1] PASSED [100%]
+
+================================== FAILURES ===================================
+__________ test_load_scores_skips_blank_line_and_keeps_valid_scores ___________
+
+tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-3/test_load_scores_skips_blank_l0')
+
+    def test_load_scores_skips_blank_line_and_keeps_valid_scores(tmp_path):
+        scores_file = tmp_path / "scores_with_blank_line.csv"
+        scores_file.write_text(
+            "name,score\n민수,85\n\n지수,90\n",
+            encoding="utf-8",
+        )
+    
+        scores, skipped = load_scores(scores_file)
+    
+        assert scores == [("민수", 85), ("지수", 90)]
+>       assert len(skipped) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+week11\test_load_scores.py:26: AssertionError
+=========================== short test summary info ===========================
+FAILED week11/test_load_scores.py::test_load_scores_skips_blank_line_and_keeps_valid_scores - assert 0 == 1
+ +  where 0 = len([])
+=================== 1 failed, 6 passed, 1 xfailed in 0.18s ====================
